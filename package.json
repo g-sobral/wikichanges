@@ -1,11 +1,12 @@
 {
-  "name": "wikichanges",
-  "version": "0.2.5",
-  "author": "Ed Summers <ehs@pobox.com>",
+  "name": "wikichanges_with_Bacon",
+  "version": "0.0.1",
+  "author": "Gabriel Sobral <gasan.sobral@gmail.com>",
   "main": "wikichanges",
-  "repository": "https://github.com/edsu/wikichanges",
+  "repository": "https://github.com/g-sobral/wikichanges_with_Bacon",
   "dependencies": {
     "irc": "0.3.x",
     "underscore": "1.3.x"
+    "baconjs": "0.7.x"
   }
 }

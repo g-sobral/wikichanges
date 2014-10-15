@@ -1,7 +1,9 @@
-wikichanges
+wikichanges with Bacon.js
 ===========
 
-wikichanges is a node.js library for getting an edit stream from the 37 major language Wikipedias. The Wikipedia MediaWiki installations are configured to log changes in  [specific IRC channels](http://meta.wikimedia.org/wiki/IRC/Channels#Raw_feeds). wikichanges joins all these channels, listens for updates, which it then parses, and sends as JavaScript objects to a callback of your choosing. Each change will look something like:
+This project is a fork of [edsu/wikichanges](https://github.com/edsu/wikichanges) and was created as an exercise on FRP with [Bacon.js](http://baconjs.github.io/index.html).
+
+wikichanges is a node.js library for getting an edit stream from the 37 major language Wikipedias. The Wikipedia MediaWiki installations are configured to log changes in  [specific IRC channels](http://meta.wikimedia.org/wiki/IRC/Channels#Raw_feeds). wikichanges joins all these channels, listens for updates, which it then parses, and sends as Bacon.js event streams. Each change will look something like:
 
 ```javascript
 { 
@@ -24,15 +26,6 @@ wikichanges is a node.js library for getting an edit stream from the 37 major la
 }
 ```
 
-Install
--------
-
-If you aren't on Ubuntu, try to do the equivalent to get your node.js
-environment set up, and run a test program:
-
-    % sudo apt-get install nodejs
-    % npm install wikichanges
-
 Usage
 -----
 
@@ -40,11 +33,11 @@ Here's a simple example of listening on all Wikipedia channels and printing
 out the page that changed along with its URL.
 
 ```javascript
-var wikichanges = require("wikichanges");
+var WikiChanges = require("wikichanges").WikiChanges;
 
-var w = new wikichanges.WikiChanges();
-w.listen(function(change) {
-  console.log(change.page + " " + change.pageUrl)
+var w = new WikiChanges();
+w.changes.onValue(function(change) {
+  console.log(change.channel + ': ' + change.page + ' [' + change.user + ']')
 });
 ```
 
@@ -52,7 +45,7 @@ If you would like to listen only on a particular channel or channels
 create the wikichanges object like this:
 
 ```javascript
-var w = new wikichanges.WikiChanges({wikipedias: ["#fr.wikipedia", "#de.wikipedia"]);
+var w = new WikiChanges({wikipedias: ["#fr.wikipedia", "#de.wikipedia"]);
 ```
 
 By default wikichanges picks a IRC nick of `wikichanges-{hostname}` where 
@@ -61,10 +54,5 @@ If you would like to control the IRC nick used by your program use the
 `ircNickname` option:
 
 ```javascript
-var w = new wikichanges.WikiChanges({ircNickname: 'super-awesome'})
+var w = new WikiChanges({ircNickname: 'super-awesome'})
 ```
-
-License
--------
-
-* CC0
