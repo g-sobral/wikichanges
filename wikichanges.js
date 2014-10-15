@@ -1,50 +1,28 @@
-var os = require("os"),
-    irc = require('irc'),
-    _ = require('underscore')
+var os    = require("os");
+var irc   = require('irc');
+var _     = require('underscore')
+var Bacon = require('baconjs').Bacon;
 
 function WikiChanges(opts) {
   if (! opts) opts = {};
   this.channels = opts.wikipedias || _.keys(wikipedias);
   this.ircNickname = opts.ircNickname || "wikichanges-" + os.hostname();
-}
 
-WikiChanges.prototype = {
+  this.client = new irc.Client('irc.wikimedia.org', this.ircNickname, {
+    channels: this.channels,
+    floodProtection: true
+  });
 
-  listen: function(callback) {
-    this.callback = callback;
-    this.client = new irc.Client('irc.wikimedia.org', this.ircNickname, {
-      channels: this.channels,
-      floodProtection: true
-    });
+  this.changes = Bacon.fromEventTarget(this.client, 'message', function(from, to, msg) {
+    return {sender: from, channel: to, txt: msg};
+  })
+  .flatMap(function(msg) {
+    return parse_msg(msg.channel, msg.txt);
+  });
 
-    // keep track of the last message per channel
-    previousMessage = {};
-
-    this.client.addListener('message', function(from, to, msg) {
-
-      // if there was a previous line that didn't parse try prepending it
-      // to the current message to see if it will parse this time
-      if (previousMessage[to]) {
-        msg = previousMessage[to] + msg;
-      }
-
-      // if parse_msg returns null it failed to parse
-      var m = parse_msg(to, msg);
-      if (m) {
-        callback(m);
-        if (previousMessage[to]) {
-          previousMessage[to] = false;
-        }
-      } else {
-        previousMessage[to] = msg;
-      }
-
-    });
-
-    this.client.addListener('error', function(msg) {
-      console.log('irc error: ', msg);
-    });
-  }
+  Bacon.fromEventTarget(this.client, 'error').onValue(function(err) {
+    console.log('irc error: ' + err);
+  });
 }
 
 function parse_msg(channel, msg) {

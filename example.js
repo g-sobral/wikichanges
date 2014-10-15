@@ -1,33 +1,33 @@
 /*
  
 This example will log into the irc server with the nickname
-wikidatachangestest and monitor only the changes for wikidata. 
-For each change it will print out the page title that changed
-the user that did the change, and a url for the page. For example:
+wikidatachangestest and monitor changes in all wikipedia channels.
+The messages will be filtered using Bacon to create new streams
+of changes in english and portuguese wikipedia channels.
 
-% node example.js
-Q192232 [אבגד] http://Wikidata.org/wiki/Q192232
-Q888455 [BeneBot*] http://Wikidata.org/wiki/Q888455
-Q6117009 [Sk!dbot] http://Wikidata.org/wiki/Q6117009
-Q6117010 [KLBot2] http://Wikidata.org/wiki/Q6117010
-Q888455 [BeneBot*] http://Wikidata.org/wiki/Q888455
-Q6117012 [KLBot2] http://Wikidata.org/wiki/Q6117012
-Q991546 [BeneBot*] http://Wikidata.org/wiki/Q991546
-Q6117013 [Sk!dbot] http://Wikidata.org/wiki/Q6117013
-Q991546 [BeneBot*] http://Wikidata.org/wiki/Q991546
-Q6117014 [KLBot2] http://Wikidata.org/wiki/Q6117014
-Q1079021 [BeneBot*] http://Wikidata.org/wiki/Q1079021
-Q6117015 [Sk!dbot] http://Wikidata.org/wiki/Q6117015
+The two channels are merged and the result is logged to the console.
 
 */
 
-var wikichanges = require("./wikichanges");
+var WikiChanges = require("./wikichanges").WikiChanges;
 
-w = new wikichanges.WikiChanges({
+var w = new WikiChanges({
   ircNickname: 'wikidatachangestest', 
-  wikipedias: ["#wikidata.wikipedia"]
+  //wikipedias: ['#fr.wikipedia', '#de.wikipedia']
 });
 
-w.listen(function(change) {
-  console.log(change.page + " [" + change.user + "] " + change.pageUrl)
+//w.changes.onValue(function(change) {
+//    console.log(change.channel + ': ' + change.page + ' [' + change.user + ']')
+//});
+
+var ptChanges = w.changes.filter(function(change) {
+	if (change.channel === '#pt.wikipedia') {return change};
+});
+
+var enChanges = w.changes.filter(function(change) {
+	if (change.channel === '#en.wikipedia') {return change};
+});
+
+ptChanges.merge(enChanges).onValue(function(change) {
+    console.log(change.channel + ': ' + change.page + ' [' + change.user + ']')
 });
